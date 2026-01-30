@@ -11,10 +11,7 @@ on:
 
 jobs:
   build_Test:
-
-    runs-on: ubuntu-latest
-
-    
+    runs-on: ubuntu-latest    
     steps:
     - uses: actions/checkout@v4
     - name: Use Node.js 20
@@ -26,8 +23,25 @@ jobs:
       run: npm install
     - name: Run Test 
       run: npm test
-  build:
+
+  run_npm_security_scan:
     needs: build_Test
+    runs-on: ubuntu-latest    
+    steps:
+    - uses: actions/checkout@v4
+    - name: Use Node.js 20
+      uses: actions/setup-node@v4
+      with:
+        node-version: 20
+        cache: 'npm'
+    - name: Install Dependencies
+      run: npm install
+    - name: Run Security Scan  
+      run: npm audit --audit-level=high
+
+  Deploy:
+    needs: run_npm_security_scan
+    if: github.ref=='refs/heads/main' && github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
       - name: Deploy to production
